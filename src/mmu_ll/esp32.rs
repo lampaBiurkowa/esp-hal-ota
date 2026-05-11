@@ -1,16 +1,18 @@
+use crate::mmu_ll::{soc::{DRAM1, DROM0, IRAM0, IRAM1, IROM0}, soc_address_in_bus};
+
 const SOC_MMU_VADDR_MASK: u32 = 0x3FFFFF;
 const SOC_MMU_INVALID: u32 = 1 << 8;
 const MMU_LL_PSRAM_ENTRY_START_ID: u32 = 1152;
-const SOC_IRAM0_CACHE_ADDRESS_LOW: u32 = 0x400D0000;
-const SOC_IRAM0_CACHE_ADDRESS_HIGH: u32 = 0x40400000;
-const SOC_IRAM1_CACHE_ADDRESS_LOW: u32 = 0x40400000;
-const SOC_IRAM1_CACHE_ADDRESS_HIGH: u32 = 0x40800000;
-const SOC_IROM0_CACHE_ADDRESS_LOW: u32 = 0x40800000;
-const SOC_IROM0_CACHE_ADDRESS_HIGH: u32 = 0x40C00000;
-const SOC_DRAM1_CACHE_ADDRESS_LOW: u32 = 0x3F800000;
-const SOC_DRAM1_CACHE_ADDRESS_HIGH: u32 = 0x3FC00000;
-const SOC_DROM0_CACHE_ADDRESS_LOW: u32 = 0x3F400000;
-const SOC_DROM0_CACHE_ADDRESS_HIGH: u32 = 0x3F800000;
+pub(crate) const SOC_IRAM0_CACHE_ADDRESS_LOW: u32 = 0x400D0000;
+pub(crate) const SOC_IRAM0_CACHE_ADDRESS_HIGH: u32 = 0x40400000;
+pub(crate) const SOC_IRAM1_CACHE_ADDRESS_LOW: u32 = 0x40400000;
+pub(crate) const SOC_IRAM1_CACHE_ADDRESS_HIGH: u32 = 0x40800000;
+pub(crate) const SOC_IROM0_CACHE_ADDRESS_LOW: u32 = 0x40800000;
+pub(crate) const SOC_IROM0_CACHE_ADDRESS_HIGH: u32 = 0x40C00000;
+pub(crate) const SOC_DRAM1_CACHE_ADDRESS_LOW: u32 = 0x3F800000;
+pub(crate) const SOC_DRAM1_CACHE_ADDRESS_HIGH: u32 = 0x3FC00000;
+pub(crate) const SOC_DROM0_CACHE_ADDRESS_LOW: u32 = 0x3F400000;
+pub(crate) const SOC_DROM0_CACHE_ADDRESS_HIGH: u32 = 0x3F800000;
 const DPORT_PRO_FLASH_MMU_TABLE: u32 = 0x3FF10000;
 
 pub fn mmu_ll_get_page_size(_mmu_id: u32) -> u32 {
@@ -22,29 +24,53 @@ pub fn mmu_ll_get_entry_id(_mmu_id: u32, vaddr: u32) -> u32 {
     let mut shift_code = 0;
     let mut vaddr_mask = 0;
 
-    if soc_address_in_bus!(SOC_DROM0_CACHE, vaddr) {
+    if soc_address_in_bus(DROM0, vaddr) {
         offset = 0;
         shift_code = 16;
         vaddr_mask = SOC_MMU_VADDR_MASK;
-    } else if soc_address_in_bus!(SOC_IRAM0_CACHE, vaddr) {
+    } else if soc_address_in_bus(IRAM0, vaddr) {
         offset = 64;
         shift_code = 16;
         vaddr_mask = SOC_MMU_VADDR_MASK;
-    } else if soc_address_in_bus!(SOC_IRAM1_CACHE, vaddr) {
+    } else if soc_address_in_bus(IRAM1, vaddr) {
         offset = 128;
         shift_code = 16;
         vaddr_mask = SOC_MMU_VADDR_MASK;
-    } else if soc_address_in_bus!(SOC_IROM0_CACHE, vaddr) {
+    } else if soc_address_in_bus(IROM0, vaddr) {
         offset = 192;
         shift_code = 16;
         vaddr_mask = SOC_MMU_VADDR_MASK;
-    } else if soc_address_in_bus!(SOC_DRAM1_CACHE, vaddr) {
+    } else if soc_address_in_bus(DRAM1, vaddr) {
         offset = MMU_LL_PSRAM_ENTRY_START_ID;
         shift_code = 15;
         vaddr_mask = SOC_MMU_VADDR_MASK >> 1;
     } else {
         error!("mmu_ll_get_entry_id failed!");
     }
+
+    // if soc_address_in_bus!(SOC_DROM0_CACHE, vaddr) {
+    //     offset = 0;
+    //     shift_code = 16;
+    //     vaddr_mask = SOC_MMU_VADDR_MASK;
+    // } else if soc_address_in_bus!(SOC_IRAM0_CACHE, vaddr) {
+    //     offset = 64;
+    //     shift_code = 16;
+    //     vaddr_mask = SOC_MMU_VADDR_MASK;
+    // } else if soc_address_in_bus!(SOC_IRAM1_CACHE, vaddr) {
+    //     offset = 128;
+    //     shift_code = 16;
+    //     vaddr_mask = SOC_MMU_VADDR_MASK;
+    // } else if soc_address_in_bus!(SOC_IROM0_CACHE, vaddr) {
+    //     offset = 192;
+    //     shift_code = 16;
+    //     vaddr_mask = SOC_MMU_VADDR_MASK;
+    // } else if soc_address_in_bus!(SOC_DRAM1_CACHE, vaddr) {
+    //     offset = MMU_LL_PSRAM_ENTRY_START_ID;
+    //     shift_code = 15;
+    //     vaddr_mask = SOC_MMU_VADDR_MASK >> 1;
+    // } else {
+    //     error!("mmu_ll_get_entry_id failed!");
+    // }
 
     offset + ((vaddr & vaddr_mask) >> shift_code)
 }

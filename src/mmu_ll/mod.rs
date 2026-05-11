@@ -1,9 +1,50 @@
-#[cfg(any(feature = "esp32", feature = "esp32s2"))]
-macro_rules! soc_address_in_bus {
-    ($bus_name:ident, $vaddr:ident) => {{
-        (concat_idents!($bus_name, _ADDRESS_LOW)..concat_idents!($bus_name, _ADDRESS_HIGH))
-            .contains(&$vaddr)
-    }};
+// #[cfg(any(feature = "esp32", feature = "esp32s2"))]
+// macro_rules! soc_address_in_bus {
+//     ($bus_name:ident, $vaddr:ident) => {{
+//         (concat_idents!($bus_name, _ADDRESS_LOW)..concat_idents!($bus_name, _ADDRESS_HIGH))
+//             .contains(&$vaddr)
+//     }};
+// }
+
+#[inline(always)]
+fn soc_address_in_bus(range: BusRange, vaddr: u32) -> bool {
+    (range.low..=range.high).contains(&vaddr)
+}
+
+#[derive(Copy, Clone)]
+struct BusRange {
+    low: u32,
+    high: u32,
+}
+
+#[cfg(feature = "esp32")]
+mod soc {
+    use crate::mmu_ll::{BusRange, SOC_DRAM1_CACHE_ADDRESS_HIGH, SOC_DRAM1_CACHE_ADDRESS_LOW, SOC_DROM0_CACHE_ADDRESS_HIGH, SOC_DROM0_CACHE_ADDRESS_LOW, SOC_IRAM0_CACHE_ADDRESS_HIGH, SOC_IRAM0_CACHE_ADDRESS_LOW, SOC_IRAM1_CACHE_ADDRESS_HIGH, SOC_IRAM1_CACHE_ADDRESS_LOW, SOC_IROM0_CACHE_ADDRESS_HIGH, SOC_IROM0_CACHE_ADDRESS_LOW};
+
+    pub(crate) const DROM0: BusRange = BusRange {
+        low: SOC_DROM0_CACHE_ADDRESS_LOW,
+        high: SOC_DROM0_CACHE_ADDRESS_HIGH,
+    };
+
+    pub(crate) const IRAM0: BusRange = BusRange {
+        low: SOC_IRAM0_CACHE_ADDRESS_LOW,
+        high: SOC_IRAM0_CACHE_ADDRESS_HIGH,
+    };
+
+    pub(crate) const IRAM1: BusRange = BusRange {
+        low: SOC_IRAM1_CACHE_ADDRESS_LOW,
+        high: SOC_IRAM1_CACHE_ADDRESS_HIGH,
+    };
+
+    pub(crate) const IROM0: BusRange = BusRange {
+        low: SOC_IROM0_CACHE_ADDRESS_LOW,
+        high: SOC_IROM0_CACHE_ADDRESS_HIGH,
+    };
+
+    pub(crate) const DRAM1: BusRange = BusRange {
+        low: SOC_DRAM1_CACHE_ADDRESS_LOW,
+        high: SOC_DRAM1_CACHE_ADDRESS_HIGH,
+    };
 }
 
 #[cfg(feature = "esp32")]
